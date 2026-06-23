@@ -1,0 +1,39 @@
+# Render deployment config for AthleteOS
+# Docs: https://render.com/docs/render-yaml-spec
+
+services:
+  # ─── Backend: FastAPI / LangGraph agent pipeline ────────────────────────
+  - type: web
+    name: athleteos-api
+    runtime: python
+    rootDir: athleteos
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free                    # upgrade to "starter" for production
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false               # set manually in the Render dashboard
+      - key: TAVILY_API_KEY
+        sync: false
+      # Lock down to your frontend URL once it's known, e.g.:
+      # - key: ALLOWED_ORIGINS
+      #   value: https://athleteos-frontend.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: "*"                # open for now; tighten before production
+
+  # ─── Frontend: static HTML/JS served by Render ──────────────────────────
+  - type: web
+    name: athleteos-frontend
+    runtime: static
+    rootDir: frontend
+    staticPublishPath: .          # serve everything in /frontend/
+    buildCommand: ""              # no build step needed (pure HTML/JS)
+    plan: free
+
+    # Redirect all 404s to index.html for the SPA router
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

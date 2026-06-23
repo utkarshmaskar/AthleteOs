@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>AthleteOS | Elite Performance OS</title>
+  <meta name="description" content="AthleteOS — AI-powered multi-agent health coaching system. Generate personalised nutrition, workout and recovery plans."/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary":"#00354a","on-background":"#dae2fd","primary-fixed-dim":"#abd600",
+            "on-surface-variant":"#c4c9ac","outline-variant":"#444933","secondary":"#bcc7de",
+            "on-secondary":"#263143","surface-dim":"#0b1326","on-primary-fixed-variant":"#3c4d00",
+            "on-primary-fixed":"#161e00","surface-tint":"#abd600","surface-container-high":"#222a3d",
+            "tertiary":"#ffffff","on-error":"#690005","surface-container-highest":"#2d3449",
+            "on-primary":"#283500","inverse-primary":"#506600","secondary-fixed":"#d8e3fb",
+            "error-container":"#93000a","on-surface":"#dae2fd","on-primary-container":"#556d00",
+            "surface-container":"#171f33","background":"#0b1326","outline":"#8e9379",
+            "error":"#ffb4ab","surface-container-low":"#131b2e","surface-container-lowest":"#060e20",
+            "secondary-fixed-dim":"#bcc7de","on-secondary-fixed":"#111c2d",
+            "on-secondary-container":"#aeb9d0","surface":"#0b1326","secondary-container":"#3e495d",
+            "primary-fixed":"#c3f400","surface-variant":"#2d3449","primary-container":"#c3f400",
+            "surface-bright":"#31394d","primary":"#ffffff","inverse-surface":"#dae2fd",
+            "on-error-container":"#ffdad6","inverse-on-surface":"#283044"
+          },
+          fontFamily: {
+            "headline-md":["Sora"],"body-md":["Inter"],"headline-lg":["Sora"],
+            "display-lg":["Sora"],"label-sm":["JetBrains Mono"],"body-lg":["Inter"]
+          },
+          fontSize: {
+            "headline-md":["24px",{lineHeight:"1.3",fontWeight:"600"}],
+            "body-md":["16px",{lineHeight:"1.5",fontWeight:"400"}],
+            "headline-lg":["32px",{lineHeight:"1.2",fontWeight:"700"}],
+            "display-lg":["48px",{lineHeight:"1.1",letterSpacing:"-0.02em",fontWeight:"800"}],
+            "label-sm":["12px",{lineHeight:"1.0",letterSpacing:"0.05em",fontWeight:"500"}],
+            "data-display":["36px",{lineHeight:"1.0",fontWeight:"800"}],
+            "body-lg":["18px",{lineHeight:"1.6",fontWeight:"400"}]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Material icons */
+    .material-symbols-outlined {
+      font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;
+      user-select: none;
+    }
+    .fill-icon { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+    /* Range sliders */
+    input[type=range] { -webkit-appearance:none; background:transparent; }
+    input[type=range]::-webkit-slider-runnable-track {
+      width:100%; height:4px; background:#444933; border-radius:2px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; height:18px; width:18px; border-radius:50%;
+      background:#c3f400; cursor:pointer; margin-top:-7px;
+      box-shadow:0 0 10px rgba(195,244,0,0.45);
+      transition: transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    input[type=range]::-moz-range-track { width:100%; height:4px; background:#444933; border-radius:2px; }
+    input[type=range]::-moz-range-thumb {
+      height:18px; width:18px; border-radius:50%; background:#c3f400;
+      cursor:pointer; border:none; box-shadow:0 0 10px rgba(195,244,0,0.45);
+    }
+
+    /* Scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar { display:none; }
+    .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+
+    /* Custom select arrow */
+    select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23c4c9ac' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-size:20px; }
+
+    /* Glow pulse on hero card */
+    @keyframes glowPulse {
+      0%,100% { opacity:0.08; transform:scale(1); }
+      50% { opacity:0.18; transform:scale(1.05); }
+    }
+    .glow-orb { animation: glowPulse 4s ease-in-out infinite; }
+
+    /* Stagger fade for agent status rows */
+    @keyframes fadeSlideIn {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .agent-row { animation: fadeSlideIn 0.5s ease forwards; }
+
+    /* Loading spinner */
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .spinner { animation:spin 0.9s linear infinite; }
+
+    /* Agent card expand */
+    .agent-body { max-height:0; overflow:hidden; transition:max-height 0.4s ease; }
+    .agent-body.open { max-height:1200px; }
+
+    /* Glimmer bar */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .shimmer-bar {
+      background: linear-gradient(90deg, #222a3d 25%, #2d3449 50%, #222a3d 75%);
+      background-size: 800px 4px;
+      animation: shimmer 1.6s infinite;
+      border-radius: 4px;
+    }
+
+    /* Page transition */
+    .page { display:none; }
+    .page.active { display:flex; }
+
+    /* Progress bar chart bars animate up */
+    @keyframes barGrow {
+      from { transform: scaleY(0); }
+      to   { transform: scaleY(1); }
+    }
+    .bar-col { transform-origin: bottom; animation: barGrow 0.6s ease forwards; }
+
+    /* Streak number counter */
+    @keyframes countUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .count-up { animation: countUp 0.5s ease forwards; }
+
+    /* Tooltip */
+    .tooltip { position:relative; }
+    .tooltip::after {
+      content: attr(data-tip);
+      position:absolute; bottom:110%; left:50%; transform:translateX(-50%);
+      background:#2d3449; color:#dae2fd; font-size:11px; padding:4px 8px;
+      border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none;
+      transition:opacity 0.2s;
+    }
+    .tooltip:hover::after { opacity:1; }
+
+    /* Health indicator dot */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .blink { animation: blink 2s ease-in-out infinite; }
+  </style>
+</head>
+
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col overflow-x-hidden">
+
+<!-- ═══════════════════════════════ TOP NAV ═══════════════════════════════ -->
+<header class="bg-surface-container-low border-b border-outline-variant fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-16">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+      <span class="material-symbols-outlined fill-icon text-on-primary-container text-sm">bolt</span>
+    </div>
+    <span class="text-headline-md font-headline-md font-extrabold text-primary-container tracking-tight">AthleteOS</span>
+  </div>
+
+  <nav class="hidden md:flex gap-1" id="mainNav">
+    <button onclick="showPage('generator')" data-page="generator"
+      class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all text-primary-container bg-primary-container/10">Generator</button>
+    <button onclick="showPage('progress')" data-page="progress"
+      class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all text-on-surface-variant hover:text-primary-container hover:bg-surface-container-high">Progress</button>
+  </nav>
+
+  <div class="flex items-center gap-3">
+    <!-- API health dot -->
+    <div class="tooltip flex items-center gap-1.5" data-tip="Backend status" id="healthDot">
+      <span class="w-2 h-2 rounded-full bg-outline blink" id="healthIndicator"></span>
+      <span class="text-[11px] font-label-sm text-on-surface-variant hidden md:inline" id="healthLabel">checking</span>
+    </div>
+    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary-container transition-colors" onclick="showPage('progress')">insights</span>
+    <span class="material-symbols-outlined text-primary-container cursor-pointer" id="userIcon">account_circle</span>
+  </div>
+</header>
+
+<!-- ═════════════════════════ PAGE: GENERATOR ═════════════════════════════ -->
+<div id="page-generator" class="page active flex-1 flex flex-col md:flex-row pt-16 h-screen overflow-hidden">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="w-full md:w-[380px] bg-surface-container border-r border-outline-variant overflow-y-auto no-scrollbar p-6 flex flex-col gap-5 shrink-0">
+
+    <div>
+      <h2 class="font-headline-md text-headline-md text-primary-container mb-1">Parameter Engine</h2>
+      <p class="text-on-surface-variant text-sm">Fine-tune your performance variables for agent processing.</p>
+    </div>
+
+    <form id="planForm" class="flex flex-col gap-5" onsubmit="return false;">
+
+      <!-- Name + Age -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Full Name</label>
+          <input id="inp-name" type="text" value="Alex Rivera" maxlength="64"
+            class="bg-background border border-outline rounded-lg px-3 py-2.5 text-on-background text-sm focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed outline-none transition-all"/>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Age</label>
+          <input id="inp-age" type="number" value="28" min="16" max="80"
+            class="bg-background border border-outline rounded-lg px-3 py-2.5 text-on-background text-sm focus:border-primary-fixed outline-none"/>
+        </div>
+      </div>
+
+      <!-- Weight -->
+      <div class="flex flex-col gap-1.5">
+        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Weight (kg)</label>
+        <input id="inp-weight" type="number" value="84.5" min="35" max="180" step="0.1"
+          class="bg-background border border-outline rounded-lg px-3 py-2.5 text-on-background text-sm focus:border-primary-fixed outline-none"/>
+      </div>
+
+      <!-- Goal segmented control -->
+      <div class="flex flex-col gap-1.5">
+        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Primary Goal</label>
+        <div class="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant gap-1" id="goalSelector">
+          <button type="button" data-goal="lose_fat"
+            class="goal-btn flex-1 py-2 text-xs font-bold rounded-lg bg-primary-container text-on-primary-container transition-all">Lose Fat</button>
+          <button type="button" data-goal="build_muscle"
+            class="goal-btn flex-1 py-2 text-xs font-bold rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all">Build Muscle</button>
+          <button type="button" data-goal="maintain"
+            class="goal-btn flex-1 py-2 text-xs font-bold rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all">Maintain</button>
+        </div>
+      </div>
+
+      <!-- Fitness level -->
+      <div class="flex flex-col gap-1.5">
+        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Fitness Level</label>
+        <select id="inp-fitness"
+          class="bg-background border border-outline rounded-lg px-3 py-2.5 text-on-background text-sm focus:border-primary-fixed outline-none appearance-none cursor-pointer pr-10">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+
+      <!-- Sliders -->
+      <div class="flex flex-col gap-4">
+
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Training Days/Week</label>
+            <span class="text-primary-container font-label-sm font-bold" id="val-training">5</span>
+          </div>
+          <input id="inp-training" type="range" min="1" max="7" value="5" class="w-full cursor-pointer"
+            oninput="document.getElementById('val-training').textContent=this.value"/>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Sleep Hours</label>
+            <span class="text-primary-container font-label-sm font-bold" id="val-sleep">7.5h</span>
+          </div>
+          <input id="inp-sleep" type="range" min="0" max="14" value="7.5" step="0.5" class="w-full cursor-pointer"
+            oninput="document.getElementById('val-sleep').textContent=this.value+'h'"/>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Available Mins/Session</label>
+            <span class="text-primary-container font-label-sm font-bold" id="val-mins">45m</span>
+          </div>
+          <input id="inp-mins" type="range" min="10" max="180" value="45" step="5" class="w-full cursor-pointer"
+            oninput="document.getElementById('val-mins').textContent=this.value+'m'"/>
+        </div>
+
+      </div>
+
+      <!-- Soreness chips -->
+      <div class="flex flex-col gap-2">
+        <label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Soreness Areas</label>
+        <div class="flex flex-wrap gap-2" id="sorenessChips">
+          <button type="button" data-soreness="legs"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">legs</button>
+          <button type="button" data-soreness="lower_back"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">lower back</button>
+          <button type="button" data-soreness="shoulders"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">shoulders</button>
+          <button type="button" data-soreness="arms"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">arms</button>
+          <button type="button" data-soreness="chest"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">chest</button>
+          <button type="button" data-soreness="none"
+            class="soreness-chip px-3 py-1 bg-surface-container-highest text-white rounded-full text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95">none</button>
+        </div>
+      </div>
+
+      <!-- Generate button -->
+      <button type="button" id="generateBtn" onclick="generatePlan()"
+        class="w-full bg-primary-container text-on-primary-container font-bold py-4 rounded-2xl flex items-center justify-center gap-2 mt-2 hover:scale-[1.02] active:scale-95 transition-transform text-sm">
+        <span class="material-symbols-outlined text-sm">auto_fix_high</span>
+        Generate Today's Plan
+      </button>
+
+      <!-- Error message -->
+      <div id="formError" class="hidden bg-error-container/20 border border-error/40 rounded-xl p-4 text-error text-sm flex items-start gap-3">
+        <span class="material-symbols-outlined text-error shrink-0">error_outline</span>
+        <span id="formErrorMsg"></span>
+      </div>
+
+    </form>
+  </aside>
+
+  <!-- ── RIGHT PANEL ── -->
+  <section class="flex-1 bg-background overflow-y-auto p-6 md:p-10 no-scrollbar relative" id="resultsPanel">
+
+    <!-- Empty state -->
+    <div id="emptyState" class="max-w-5xl mx-auto flex flex-col items-center justify-center h-full gap-6 py-20">
+      <div class="w-24 h-24 rounded-2xl bg-surface-container-low border border-outline-variant flex items-center justify-center">
+        <span class="material-symbols-outlined fill-icon text-primary-container text-5xl">bolt</span>
+      </div>
+      <div class="text-center">
+        <h3 class="text-2xl font-bold text-white font-headline-md mb-2">Ready to Build Your Plan</h3>
+        <p class="text-on-surface-variant max-w-sm">Fill in your parameters on the left and hit <span class="text-primary-container font-semibold">Generate</span> — the agent pipeline will synthesise your personalised daily programme.</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+        <div class="flex flex-col items-center gap-2 p-4 bg-surface-container rounded-xl border border-outline-variant">
+          <span class="material-symbols-outlined fill-icon text-primary-container">restaurant</span>
+          <span class="text-xs text-on-surface-variant font-semibold">Nutrition</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 p-4 bg-surface-container rounded-xl border border-outline-variant">
+          <span class="material-symbols-outlined fill-icon text-primary-container">fitness_center</span>
+          <span class="text-xs text-on-surface-variant font-semibold">Workout</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 p-4 bg-surface-container rounded-xl border border-outline-variant">
+          <span class="material-symbols-outlined fill-icon text-primary-container">bedtime</span>
+          <span class="text-xs text-on-surface-variant font-semibold">Recovery</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 p-4 bg-surface-container rounded-xl border border-outline-variant">
+          <span class="material-symbols-outlined fill-icon text-primary-container">trending_up</span>
+          <span class="text-xs text-on-surface-variant font-semibold">Progress</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results (hidden until plan generated) -->
+    <div id="resultsContent" class="hidden max-w-5xl mx-auto flex flex-col gap-8">
+
+      <!-- Hero Plan Card -->
+      <div class="relative overflow-hidden rounded-2xl bg-surface-container-low border border-outline-variant p-8">
+        <div class="glow-orb absolute top-0 right-0 w-72 h-72 bg-primary-container rounded-full blur-[120px] -mr-36 -mt-36 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="bg-primary-container/20 text-primary-fixed-dim px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Orchestrator Verified</span>
+              <span class="text-on-surface-variant font-label-sm" id="planDate"></span>
+            </div>
+            <h1 class="font-display-lg text-display-lg text-white mb-5" id="planTitle">Final Unified Plan</h1>
+            <p class="text-on-surface-variant text-sm leading-relaxed line-clamp-3 mb-4" id="planSummary"></p>
+            <div class="flex gap-6 flex-wrap">
+              <div class="flex flex-col">
+                <span class="text-on-surface-variant text-xs uppercase tracking-wider">Goal</span>
+                <span class="text-primary-container font-bold text-lg capitalize" id="statGoal">—</span>
+              </div>
+              <div class="w-px h-10 bg-outline-variant"></div>
+              <div class="flex flex-col">
+                <span class="text-on-surface-variant text-xs uppercase tracking-wider">Fitness Level</span>
+                <span class="text-white font-bold text-lg capitalize" id="statFitness">—</span>
+              </div>
+              <div class="w-px h-10 bg-outline-variant hidden md:block"></div>
+              <div class="flex flex-col">
+                <span class="text-on-surface-variant text-xs uppercase tracking-wider">Sessions/Week</span>
+                <span class="text-white font-bold text-lg" id="statDays">—</span>
+              </div>
+            </div>
+          </div>
+          <!-- Radial score -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="relative w-28 h-28">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
+                <circle class="text-surface-container-highest" cx="64" cy="64" r="52" fill="transparent" stroke="currentColor" stroke-width="8"/>
+                <circle id="heroCircle" class="text-primary-container transition-all duration-1500" cx="64" cy="64" r="52" fill="transparent" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-bold text-white" id="heroScore">0%</span>
+                <span class="text-[9px] text-on-surface-variant font-bold tracking-widest">READY</span>
+              </div>
+            </div>
+            <span class="text-[10px] text-on-surface-variant text-center">Plan Confidence</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conflicts grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="conflictsGrid">
+
+        <!-- Conflicts detected -->
+        <div class="bg-surface-container border border-error/20 rounded-2xl p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-error fill-icon">warning</span>
+            <h3 class="font-bold text-white text-base">Conflicts Detected</h3>
+          </div>
+          <ul id="conflictsList" class="flex flex-col gap-3">
+            <li class="text-on-surface-variant text-sm italic">No conflicts detected — optimal parameters.</li>
+          </ul>
+        </div>
+
+        <!-- Conflicts resolved -->
+        <div class="bg-surface-container border border-primary-container/20 rounded-2xl p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-primary-container fill-icon">verified_user</span>
+            <h3 class="font-bold text-white text-base">Resolutions Applied</h3>
+          </div>
+          <div id="resolutionsList" class="flex flex-wrap gap-2">
+            <p class="text-on-surface-variant text-sm italic">No overrides required.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Orchestrator notes -->
+      <div class="bg-surface-container-highest/50 border border-outline-variant rounded-2xl p-5 flex items-start gap-4" id="orchNotesPanel">
+        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0 mt-0.5">
+          <span class="material-symbols-outlined text-on-primary-container fill-icon text-sm">smart_toy</span>
+        </div>
+        <div class="flex-1">
+          <span class="font-label-sm text-primary-container text-[10px] uppercase tracking-widest block mb-1">Orchestrator Notes</span>
+          <p class="text-sm text-on-surface-variant italic leading-relaxed" id="orchNotesText">—</p>
+        </div>
+      </div>
+
+      <!-- Four agent cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+
+        <!-- Nutrition -->
+        <div class="group bg-surface-container border border-outline-variant rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all">
+          <button type="button" onclick="toggleAgent('nutrition')"
+            class="w-full flex justify-between items-start p-6 text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container shrink-0">
+                <span class="material-symbols-outlined text-2xl fill-icon">restaurant</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-white">Nutrition</h4>
+                <p class="text-xs text-on-surface-variant">Fueling &amp; Macros</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-all duration-300" id="icon-nutrition">expand_more</span>
+          </button>
+          <div class="agent-body" id="body-nutrition">
+            <div class="px-6 pb-6 pt-0">
+              <div class="h-px bg-outline-variant mb-5"></div>
+              <pre class="text-xs text-on-surface-variant whitespace-pre-wrap leading-relaxed font-body-md" id="text-nutrition">—</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workout -->
+        <div class="group bg-surface-container border border-outline-variant rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all">
+          <button type="button" onclick="toggleAgent('workout')"
+            class="w-full flex justify-between items-start p-6 text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container shrink-0">
+                <span class="material-symbols-outlined text-2xl fill-icon">fitness_center</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-white">Workout</h4>
+                <p class="text-xs text-on-surface-variant">Training Programme</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-all duration-300" id="icon-workout">expand_more</span>
+          </button>
+          <div class="agent-body" id="body-workout">
+            <div class="px-6 pb-6 pt-0">
+              <div class="h-px bg-outline-variant mb-5"></div>
+              <pre class="text-xs text-on-surface-variant whitespace-pre-wrap leading-relaxed font-body-md" id="text-workout">—</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recovery -->
+        <div class="group bg-surface-container border border-outline-variant rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all">
+          <button type="button" onclick="toggleAgent('recovery')"
+            class="w-full flex justify-between items-start p-6 text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container shrink-0">
+                <span class="material-symbols-outlined text-2xl fill-icon">bedtime</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-white">Recovery</h4>
+                <p class="text-xs text-on-surface-variant">Neuromuscular Reset</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-all duration-300" id="icon-recovery">expand_more</span>
+          </button>
+          <div class="agent-body" id="body-recovery">
+            <div class="px-6 pb-6 pt-0">
+              <div class="h-px bg-outline-variant mb-5"></div>
+              <pre class="text-xs text-on-surface-variant whitespace-pre-wrap leading-relaxed font-body-md" id="text-recovery">—</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="group bg-surface-container border border-outline-variant rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all">
+          <button type="button" onclick="toggleAgent('progress-card')"
+            class="w-full flex justify-between items-start p-6 text-left">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary-container shrink-0">
+                <span class="material-symbols-outlined text-2xl fill-icon">trending_up</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-white">Progress</h4>
+                <p class="text-xs text-on-surface-variant">LBM &amp; Strength</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container transition-all duration-300" id="icon-progress-card">expand_more</span>
+          </button>
+          <div class="agent-body" id="body-progress-card">
+            <div class="px-6 pb-6 pt-0">
+              <div class="h-px bg-outline-variant mb-5"></div>
+              <pre class="text-xs text-on-surface-variant whitespace-pre-wrap leading-relaxed font-body-md" id="text-progress-card">—</pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay"
+      class="hidden absolute inset-0 bg-background/95 backdrop-blur-sm z-40 flex items-center justify-center p-10">
+      <div class="max-w-sm w-full space-y-8">
+        <div class="flex flex-col items-center gap-5">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full border-4 border-surface-container-highest"></div>
+            <div class="spinner absolute inset-0 w-16 h-16 rounded-full border-4 border-primary-container border-t-transparent"></div>
+          </div>
+          <div class="text-center">
+            <h2 class="text-2xl font-bold text-white font-headline-md">Orchestrator Synthesizing</h2>
+            <p class="text-on-surface-variant text-sm mt-1" id="loadingSubtitle">Initialising agent pipeline…</p>
+          </div>
+        </div>
+        <div class="space-y-4" id="agentStatusList">
+          <div class="agent-row flex items-center gap-4" style="animation-delay:0s">
+            <span class="material-symbols-outlined fill-icon text-primary-container">restaurant</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant font-medium">Nutrition agent</span>
+                <span class="text-primary-container font-bold text-xs" id="status-nutrition">running…</span>
+              </div>
+              <div class="mt-1 h-1 bg-surface-container-high rounded-full overflow-hidden">
+                <div class="shimmer-bar h-full w-full"></div>
+              </div>
+            </div>
+          </div>
+          <div class="agent-row flex items-center gap-4 opacity-70" style="animation-delay:0.15s">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant">fitness_center</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant font-medium">Workout agent</span>
+                <span class="text-on-surface-variant font-bold text-xs" id="status-workout">queued</span>
+              </div>
+              <div class="mt-1 h-1 bg-surface-container-high rounded-full"></div>
+            </div>
+          </div>
+          <div class="agent-row flex items-center gap-4 opacity-40" style="animation-delay:0.3s">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant">bedtime</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant font-medium">Recovery agent</span>
+                <span class="text-on-surface-variant font-bold text-xs" id="status-recovery">queued</span>
+              </div>
+              <div class="mt-1 h-1 bg-surface-container-high rounded-full"></div>
+            </div>
+          </div>
+          <div class="agent-row flex items-center gap-4 opacity-20" style="animation-delay:0.45s">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant">trending_up</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant font-medium">Progress agent</span>
+                <span class="text-on-surface-variant font-bold text-xs" id="status-progress">queued</span>
+              </div>
+              <div class="mt-1 h-1 bg-surface-container-high rounded-full"></div>
+            </div>
+          </div>
+          <div class="agent-row flex items-center gap-4 opacity-10" style="animation-delay:0.6s">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant">smart_toy</span>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-on-surface-variant font-medium">Orchestrator</span>
+                <span class="text-on-surface-variant font-bold text-xs" id="status-orch">queued</span>
+              </div>
+              <div class="mt-1 h-1 bg-surface-container-high rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div><!-- end page-generator -->
+
+
+<!-- ════════════════════════ PAGE: PROGRESS ═══════════════════════════════ -->
+<div id="page-progress" class="page flex-1 flex-col md:flex-row pt-16 h-screen overflow-hidden">
+
+  <!-- Left sidebar -->
+  <aside class="w-full md:w-64 bg-surface-container-low border-r border-outline-variant p-6 flex flex-col gap-2 shrink-0">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+        <span class="material-symbols-outlined fill-icon text-on-primary-container">person</span>
+      </div>
+      <div>
+        <p class="font-bold text-white text-sm" id="profileNameSidebar">—</p>
+        <p class="text-[10px] text-primary-container font-label-sm uppercase">Pro Tier</p>
+      </div>
+    </div>
+
+    <nav class="flex flex-col gap-1">
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-white transition-all text-sm" onclick="showPage('generator')">
+        <span class="material-symbols-outlined text-base">auto_fix_high</span> Generator
+      </button>
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-container/10 text-primary-container text-sm font-semibold">
+        <span class="material-symbols-outlined text-base fill-icon">trending_up</span> Progress
+      </button>
+    </nav>
+
+    <div class="mt-auto pt-6 border-t border-outline-variant">
+      <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant text-sm">
+        <span class="material-symbols-outlined text-base">settings</span> Settings
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right: profile content -->
+  <section class="flex-1 bg-background overflow-y-auto p-6 md:p-10 no-scrollbar">
+    <div class="max-w-4xl mx-auto flex flex-col gap-8">
+
+      <!-- Header -->
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="bg-primary-container/20 text-primary-fixed-dim px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Athlete Profile</span>
+        </div>
+        <h1 class="font-headline-lg text-headline-lg text-white font-bold">Performance History</h1>
+        <!-- Search by user -->
+        <div class="flex gap-3 mt-4">
+          <input id="profileSearch" type="text" placeholder="Enter user name to load profile…"
+            class="bg-surface-container-low border border-outline rounded-lg px-4 py-2.5 text-on-background text-sm focus:border-primary-fixed outline-none flex-1"/>
+          <button onclick="loadProfile()" id="loadProfileBtn"
+            class="bg-primary-container text-on-primary-container font-bold px-5 py-2.5 rounded-lg text-sm hover:scale-[1.02] active:scale-95 transition-transform">
+            Load
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statsStrip">
+        <!-- Streak -->
+        <div class="bg-surface-container-low border border-outline-variant rounded-2xl p-5 relative overflow-hidden">
+          <div class="absolute top-3 right-3">
+            <span class="w-2 h-2 rounded-full bg-primary-container blink inline-block"></span>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined fill-icon text-primary-container text-xl">local_fire_department</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label-sm">Current Streak</p>
+          <p class="text-data-display font-bold text-primary-container count-up" id="streakNum">—</p>
+          <p class="text-xs text-on-surface-variant mt-1">days</p>
+        </div>
+
+        <!-- Total sessions -->
+        <div class="bg-surface-container border border-outline-variant rounded-2xl p-5">
+          <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant text-xl">calendar_month</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label-sm">Total Sessions</p>
+          <p class="text-data-display font-bold text-white count-up" id="totalSessions">—</p>
+          <p class="text-xs text-on-surface-variant mt-1">all time</p>
+        </div>
+
+        <!-- Last updated -->
+        <div class="bg-surface-container border border-outline-variant rounded-2xl p-5">
+          <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant text-xl">update</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label-sm">Last Session</p>
+          <p class="text-lg font-bold text-white mt-1 leading-tight" id="lastUpdated">—</p>
+        </div>
+
+        <!-- Plateau risk -->
+        <div class="bg-surface-container border rounded-2xl p-5 transition-colors" id="plateauCard">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-surface-container-high">
+            <span class="material-symbols-outlined fill-icon text-on-surface-variant text-xl" id="plateauIcon">check_circle</span>
+          </div>
+          <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label-sm">Plateau Risk</p>
+          <p class="text-lg font-bold mt-1" id="plateauText">—</p>
+        </div>
+      </div>
+
+      <!-- Session history -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-white text-lg">Session History</h2>
+          <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant text-xs font-label-sm hover:border-primary-container/50 hover:text-primary-container transition-all">
+            <span class="material-symbols-outlined text-sm">filter_list</span> Filter by type
+          </button>
+        </div>
+
+        <!-- History list -->
+        <div class="flex flex-col gap-4" id="historyList">
+          <div class="text-center py-16 text-on-surface-variant text-sm">
+            <span class="material-symbols-outlined text-4xl block mb-3 text-outline">manage_history</span>
+            Enter a user name above and press Load to view their session history.
+          </div>
+        </div>
+      </div>
+
+      <!-- Coach Insights panel -->
+      <div class="bg-surface-container-low border border-outline-variant rounded-2xl p-6" id="coachInsights">
+        <h3 class="font-bold text-white text-base mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined fill-icon text-primary-container text-base">psychology</span>
+          Coach Insights
+        </h3>
+        <p class="text-on-surface-variant text-sm" id="insightText">Load a profile to see AI coach insights.</p>
+        <button onclick="showPage('generator')"
+          class="mt-5 w-full bg-primary-container text-on-primary-container font-bold py-3 rounded-xl text-sm hover:scale-[1.01] active:scale-95 transition-transform flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">auto_fix_high</span>
+          Generate New Training Plan
+        </button>
+      </div>
+
+    </div>
+  </section>
+</div><!-- end page-progress -->
+
+
+<!-- Mobile FAB -->
+<button onclick="showPage('generator')"
+  class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-container text-on-primary-container rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform z-50">
+  <span class="material-symbols-outlined fill-icon">auto_fix_high</span>
+</button>
+
+
+<!-- ═════════════════════════════ JAVASCRIPT ══════════════════════════════ -->
+<script>
+  /* ── Config ── */
+  const API_BASE = 'http://localhost:8000';
+
+  /* ── State ── */
+  let selectedGoal = 'lose_fat';
+  let selectedSoreness = new Set();
+  let planResult = null;
+
+  /* ══════════════════════════════════════════
+     PAGE ROUTING
+  ══════════════════════════════════════════ */
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + name);
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      const active = b.dataset.page === name;
+      b.classList.toggle('text-primary-container', active);
+      b.classList.toggle('bg-primary-container/10', active);
+      b.classList.toggle('text-on-surface-variant', !active);
+      b.classList.toggle('bg-primary-container/10', active);
+    });
+
+    if (name === 'progress') {
+      const name_ = document.getElementById('inp-name').value.trim() || 'default_user';
+      document.getElementById('profileSearch').value = name_;
+      loadProfile(name_);
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     GOAL SELECTOR
+  ══════════════════════════════════════════ */
+  document.querySelectorAll('.goal-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedGoal = btn.dataset.goal;
+      document.querySelectorAll('.goal-btn').forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('bg-primary-container', on);
+        b.classList.toggle('text-on-primary-container', on);
+        b.classList.toggle('text-on-surface-variant', !on);
+        b.classList.toggle('bg-transparent', !on);
+      });
+    });
+  });
+
+  /* ══════════════════════════════════════════
+     SORENESS CHIPS
+  ══════════════════════════════════════════ */
+  document.querySelectorAll('.soreness-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const val = chip.dataset.soreness;
+      if (val === 'none') {
+        selectedSoreness.clear();
+        document.querySelectorAll('.soreness-chip').forEach(c => {
+          c.classList.remove('bg-primary-container','text-on-primary-container');
+          c.classList.add('bg-surface-container-highest','text-white');
+        });
+        chip.classList.add('bg-primary-container','text-on-primary-container');
+        chip.classList.remove('bg-surface-container-highest','text-white');
+        return;
+      }
+      // Remove 'none' highlight when another area is selected
+      document.querySelector('[data-soreness="none"]').classList.remove('bg-primary-container','text-on-primary-container');
+      document.querySelector('[data-soreness="none"]').classList.add('bg-surface-container-highest','text-white');
+
+      if (selectedSoreness.has(val)) {
+        selectedSoreness.delete(val);
+        chip.classList.remove('bg-primary-container','text-on-primary-container');
+        chip.classList.add('bg-surface-container-highest','text-white');
+      } else {
+        selectedSoreness.add(val);
+        chip.classList.add('bg-primary-container','text-on-primary-container');
+        chip.classList.remove('bg-surface-container-highest','text-white');
+      }
+    });
+  });
+
+  /* ══════════════════════════════════════════
+     HEALTH CHECK
+  ══════════════════════════════════════════ */
+  async function checkHealth() {
+    try {
+      const r = await fetch(`${API_BASE}/api/health`, { signal: AbortSignal.timeout(4000) });
+      const d = await r.json();
+      const dot = document.getElementById('healthIndicator');
+      const label = document.getElementById('healthLabel');
+      if (d.status === 'ok') {
+        dot.classList.remove('bg-outline','bg-error');
+        dot.classList.add('bg-primary-container');
+        dot.classList.remove('blink');
+        label.textContent = d.missing_env_vars.length ? 'missing keys' : 'online';
+        label.className = d.missing_env_vars.length
+          ? 'text-[11px] font-label-sm text-error hidden md:inline'
+          : 'text-[11px] font-label-sm text-primary-container hidden md:inline';
+      } else { setOffline(); }
+    } catch { setOffline(); }
+  }
+
+  function setOffline() {
+    const dot = document.getElementById('healthIndicator');
+    dot.classList.remove('bg-outline','bg-primary-container');
+    dot.classList.add('bg-error');
+    document.getElementById('healthLabel').textContent = 'offline';
+    document.getElementById('healthLabel').className = 'text-[11px] font-label-sm text-error hidden md:inline';
+  }
+
+  checkHealth();
+  setInterval(checkHealth, 30000);
+
+  /* ══════════════════════════════════════════
+     LOADING STATE ANIMATION
+  ══════════════════════════════════════════ */
+  const loadingSteps = [
+    ['status-nutrition','Nutrition agent','running…'],
+    ['status-workout','Workout agent','running…'],
+    ['status-recovery','Recovery agent','running…'],
+    ['status-progress','Progress agent','running…'],
+    ['status-orch','Orchestrator','synthesising…'],
+  ];
+  let loadingTimer = null;
+
+  function startLoadingAnimation() {
+    let step = 0;
+    document.querySelectorAll('#agentStatusList .agent-row').forEach((row, i) => {
+      row.style.opacity = i === 0 ? '1' : (0.7 - i * 0.15).toFixed(2);
+    });
+    loadingTimer = setInterval(() => {
+      if (step < loadingSteps.length) {
+        const [id, , text] = loadingSteps[step];
+        const el = document.getElementById(id);
+        if (el) { el.textContent = text; el.className = 'text-primary-container font-bold text-xs'; }
+        // Light up next row
+        const rows = document.querySelectorAll('#agentStatusList .agent-row');
+        if (rows[step]) rows[step].style.opacity = '1';
+        step++;
+        if (step < loadingSteps.length) {
+          const sub = ['Nutrition planning…','Workout optimising…','Recovery computing…','Progress tracking…','Orchestrating…'];
+          document.getElementById('loadingSubtitle').textContent = sub[step] || 'Finalising…';
+        }
+      }
+    }, 2200);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+    loadingSteps.forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = '✓ done'; el.className = 'text-primary-container font-bold text-xs'; }
+    });
+  }
+
+  /* ══════════════════════════════════════════
+     GENERATE PLAN
+  ══════════════════════════════════════════ */
+  async function generatePlan() {
+    const userName = document.getElementById('inp-name').value.trim() || 'default_user';
+    const age = parseInt(document.getElementById('inp-age').value);
+    const weightKg = parseFloat(document.getElementById('inp-weight').value);
+    const fitnessLevel = document.getElementById('inp-fitness').value;
+    const trainingDays = parseInt(document.getElementById('inp-training').value);
+    const sleepHours = parseFloat(document.getElementById('inp-sleep').value);
+    const availableMins = parseInt(document.getElementById('inp-mins').value);
+    const soreness = [...selectedSoreness];
+
+    // Basic validation
+    if (!userName || isNaN(age) || isNaN(weightKg)) {
+      showError('Please fill in all required fields.');
+      return;
+    }
+
+    hideError();
+    setGenerating(true);
+
+    // Show loading overlay
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('resultsContent').classList.add('hidden');
+    document.getElementById('loadingSubtitle').textContent = 'Initialising agent pipeline…';
+    // Reset status labels
+    loadingSteps.forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = 'queued'; el.className = 'text-on-surface-variant font-bold text-xs'; }
+    });
+    startLoadingAnimation();
+
+    const body = {
+      user_name: userName,
+      age, weight_kg: weightKg,
+      goal: selectedGoal,
+      fitness_level: fitnessLevel,
+      training_days: trainingDays,
+      sleep_hours: sleepHours,
+      available_minutes: availableMins,
+      soreness_areas: soreness
+    };
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      stopLoadingAnimation();
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+        throw new Error(err.detail || `HTTP ${resp.status}`);
+      }
+
+      planResult = await resp.json();
+      renderResults(planResult, body);
+
+    } catch (err) {
+      stopLoadingAnimation();
+      document.getElementById('loadingOverlay').classList.add('hidden');
+      document.getElementById('emptyState').classList.remove('hidden');
+      showError(`Error: ${err.message}`);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  /* ── Render results ── */
+  function renderResults(data, req) {
+    // Hide loading, show results
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('resultsContent').classList.remove('hidden');
+
+    // Hero card
+    const now = new Date();
+    document.getElementById('planDate').textContent = now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'short' });
+    document.getElementById('statGoal').textContent = req.goal.replace('_',' ');
+    document.getElementById('statFitness').textContent = req.fitness_level;
+    document.getElementById('statDays').textContent = req.training_days + ' days';
+
+    const summary = data.final_plan ? data.final_plan.slice(0, 200).replace(/\n/g,' ') : 'Plan generated.';
+    document.getElementById('planSummary').textContent = summary + (data.final_plan && data.final_plan.length > 200 ? '…' : '');
+
+    // Animate radial ring (confidence based on conflicts)
+    const conflicts = data.conflicts_detected.length;
+    const confidence = Math.max(60, 100 - conflicts * 12);
+    animateHeroRing(confidence);
+
+    // Conflicts
+    renderConflicts(data.conflicts_detected, data.conflicts_resolved);
+
+    // Orch notes
+    document.getElementById('orchNotesText').textContent = data.orchestrator_notes || 'No additional notes from orchestrator.';
+
+    // Agent cards
+    document.getElementById('text-nutrition').textContent = data.nutrition_plan || 'No nutrition plan returned.';
+    document.getElementById('text-workout').textContent = data.workout_plan || 'No workout plan returned.';
+    document.getElementById('text-recovery').textContent = data.recovery_plan || 'No recovery plan returned.';
+    document.getElementById('text-progress-card').textContent = data.progress_summary || 'No progress summary returned.';
+
+    // Auto-expand all cards
+    ['nutrition','workout','recovery','progress-card'].forEach(k => {
+      const body = document.getElementById('body-' + k);
+      if (body && !body.classList.contains('open')) toggleAgent(k);
+    });
+
+    // Scroll results into view
+    document.getElementById('resultsPanel').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function animateHeroRing(pct) {
+    const circle = document.getElementById('heroCircle');
+    const circum = 326.7;
+    const offset = circum - (pct / 100) * circum;
+    // Start from full offset
+    circle.style.strokeDashoffset = circum;
+    document.getElementById('heroScore').textContent = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        circle.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)';
+        circle.style.strokeDashoffset = offset;
+      });
+    });
+    // Count up the number
+    let cur = 0;
+    const step = pct / 60;
+    const timer = setInterval(() => {
+      cur = Math.min(cur + step, pct);
+      document.getElementById('heroScore').textContent = Math.round(cur) + '%';
+      if (cur >= pct) clearInterval(timer);
+    }, 25);
+  }
+
+  function renderConflicts(detected, resolved) {
+    const list = document.getElementById('conflictsList');
+    if (!detected || detected.length === 0) {
+      list.innerHTML = '<li class="text-on-surface-variant text-sm italic flex items-center gap-2"><span class="material-symbols-outlined text-primary-container fill-icon text-base">check_circle</span>No conflicts detected — optimal parameters.</li>';
+    } else {
+      list.innerHTML = detected.map((c, i) => `
+        <li class="flex items-start gap-3 p-3 bg-error-container/10 rounded-xl border border-error/10">
+          <span class="text-error text-xs font-bold font-label-sm shrink-0 mt-0.5">${String(i+1).padStart(2,'0')}</span>
+          <p class="text-on-surface text-sm leading-relaxed">${escHtml(c)}</p>
+        </li>`).join('');
+    }
+
+    const resList = document.getElementById('resolutionsList');
+    if (!resolved || resolved.length === 0) {
+      resList.innerHTML = '<p class="text-on-surface-variant text-sm italic">No overrides required.</p>';
+    } else {
+      const icons = ['auto_awesome','spa','local_cafe','hotel','adjust','bolt'];
+      resList.innerHTML = resolved.map((r, i) => `
+        <div class="flex items-center gap-2 px-3 py-2 bg-primary-container/10 border border-primary-container/30 rounded-lg">
+          <span class="material-symbols-outlined text-primary-container fill-icon text-sm">${icons[i % icons.length]}</span>
+          <span class="text-xs font-semibold text-primary-container">${escHtml(r)}</span>
+        </div>`).join('');
+    }
+  }
+
+  /* ── Toggle agent card ── */
+  function toggleAgent(key) {
+    const body = document.getElementById('body-' + key);
+    const icon = document.getElementById('icon-' + key);
+    if (!body) return;
+    body.classList.toggle('open');
+    if (icon) icon.textContent = body.classList.contains('open') ? 'expand_less' : 'expand_more';
+  }
+
+  /* ── UI helpers ── */
+  function setGenerating(on) {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = on;
+    btn.innerHTML = on
+      ? '<svg class="spinner w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10"/></svg> Generating…'
+      : '<span class="material-symbols-outlined text-sm">auto_fix_high</span> Generate Today\'s Plan';
+    btn.classList.toggle('opacity-70', on);
+    btn.classList.toggle('cursor-not-allowed', on);
+  }
+
+  function showError(msg) {
+    document.getElementById('formError').classList.remove('hidden');
+    document.getElementById('formErrorMsg').textContent = msg;
+  }
+  function hideError() {
+    document.getElementById('formError').classList.add('hidden');
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ══════════════════════════════════════════
+     PROFILE / PROGRESS PAGE
+  ══════════════════════════════════════════ */
+  async function loadProfile(nameOverride) {
+    const name = nameOverride || document.getElementById('profileSearch').value.trim();
+    if (!name) return;
+
+    document.getElementById('profileNameSidebar').textContent = name;
+    document.getElementById('loadProfileBtn').disabled = true;
+    document.getElementById('loadProfileBtn').textContent = 'Loading…';
+
+    try {
+      const r = await fetch(`${API_BASE}/api/profile/${encodeURIComponent(name)}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = await r.json();
+      renderProfile(d);
+    } catch (err) {
+      document.getElementById('historyList').innerHTML = `
+        <div class="text-center py-10 text-error text-sm">
+          <span class="material-symbols-outlined text-3xl block mb-2">error_outline</span>
+          Failed to load profile: ${escHtml(err.message)}
+        </div>`;
+    } finally {
+      document.getElementById('loadProfileBtn').disabled = false;
+      document.getElementById('loadProfileBtn').textContent = 'Load';
+    }
+  }
+
+  function renderProfile(d) {
+    document.getElementById('streakNum').textContent = d.current_streak ?? 0;
+    document.getElementById('totalSessions').textContent = d.total_sessions ?? 0;
+    document.getElementById('lastUpdated').textContent = d.last_updated || '—';
+    document.getElementById('profileNameSidebar').textContent = d.user_name;
+
+    // Plateau
+    const plateaued = d.plateau_flagged;
+    const card = document.getElementById('plateauCard');
+    const icon = document.getElementById('plateauIcon');
+    const text = document.getElementById('plateauText');
+    if (plateaued) {
+      card.classList.add('border-error/40');
+      icon.textContent = 'warning';
+      icon.className = 'material-symbols-outlined fill-icon text-error text-xl';
+      text.textContent = 'Medium Risk';
+      text.className = 'text-lg font-bold mt-1 text-error';
+    } else {
+      card.classList.remove('border-error/40');
+      icon.textContent = 'check_circle';
+      icon.className = 'material-symbols-outlined fill-icon text-primary-container text-xl';
+      text.textContent = 'Low Risk';
+      text.className = 'text-lg font-bold mt-1 text-primary-container';
+    }
+
+    // Session history
+    const hist = d.session_history || [];
+    const list = document.getElementById('historyList');
+    if (hist.length === 0) {
+      list.innerHTML = '<div class="text-center py-10 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-3xl block mb-2 text-outline">history</span>No sessions logged yet. Generate your first plan!</div>';
+    } else {
+      const icons = ['fitness_center','restaurant','bedtime','trending_up','bolt'];
+      list.innerHTML = [...hist].reverse().map((s, i) => `
+        <div class="bg-surface-container border border-outline-variant rounded-2xl p-5 hover:border-primary-container/30 transition-all">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined fill-icon text-primary-container text-base">${icons[i % icons.length]}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-xs text-on-surface-variant font-label-sm">${escHtml(s.date || '—')}</span>
+                <span class="text-xs text-primary-container font-bold font-label-sm">#${hist.length - i}</span>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed truncate">${escHtml(s.summary || 'Plan generated.')}</p>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Coach insights
+    const insightEl = document.getElementById('insightText');
+    if (d.current_streak > 7) {
+      insightEl.innerHTML = `<span class="flex items-start gap-3 mb-3"><span class="material-symbols-outlined fill-icon text-primary-container text-base mt-0.5">star</span><span>Your recovery scores have been exceptionally high this week. This is the optimal time to attempt a new 1RM on your primary lifts.</span></span>`;
+    } else if (d.plateau_flagged) {
+      insightEl.innerHTML = `<span class="flex items-start gap-3 mb-3"><span class="material-symbols-outlined fill-icon text-error text-base mt-0.5">warning</span><span>Variance in load is decreasing. Consider a de-load week or a new stimulus (e.g., tempo, cluster sets).</span></span>`;
+    } else if (d.total_sessions === 0) {
+      insightEl.textContent = 'No sessions yet. Generate your first plan to get personalised coach insights!';
+    } else {
+      insightEl.innerHTML = `<span class="flex items-start gap-3"><span class="material-symbols-outlined fill-icon text-primary-container text-base mt-0.5">psychology</span><span>Consistency is your strongest metric. Keep logging sessions to unlock deeper pattern analysis from the agents.</span></span>`;
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     INIT
+  ══════════════════════════════════════════ */
+  // Pre-fill profile search with current user name when navigating
+  document.getElementById('inp-name').addEventListener('input', function() {
+    document.getElementById('profileSearch').value = this.value;
+  });
+</script>
+</body>
+</html>
