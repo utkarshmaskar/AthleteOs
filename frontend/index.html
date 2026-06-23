@@ -737,8 +737,14 @@
 
 <!-- ═════════════════════════════ JAVASCRIPT ══════════════════════════════ -->
 <script>
-  /* ── Config ── */
-  const API_BASE = 'http://localhost:8000';
+  /* ── Config ──
+     Locally:      points to http://localhost:8000
+     On Render:    points to the deployed backend service URL
+     Override:     set window.ATHLETE_API in browser console for testing  */
+  const API_BASE = window.ATHLETE_API ||
+    (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? 'http://localhost:8000'
+      : 'https://athleteos-api.onrender.com');   // ← update this after backend deploys
 
   /* ── State ── */
   let selectedGoal = 'lose_fat';
